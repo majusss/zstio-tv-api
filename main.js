@@ -2,6 +2,8 @@ const fastify = require("fastify")({logger: false});
 const axios = require("axios");
 const querystring = require("querystring");
 const {Keystore, AccountTools, VulcanHebe} = require('vulcan-api-js');
+const cheerio = require("cheerio")
+const https = require("https")
 
 require("dotenv").config();
 
@@ -45,8 +47,32 @@ fastify.get("/api/getLuckyNumber", async (req, reply) => {
       luckyNumber: -1
     });
   }
-
 });
+
+fastify.get("/api/getCytat", async (req, reply) => {
+  const res = await axios.get("https://www.kalendarzswiat.pl/cytat_dnia", {
+    httpsAgent: new https.Agent({
+      rejectUnauthorized: false
+    })
+  });
+
+  const $ = cheerio.load(res.data);
+
+  const match = $(".quote-of-the-day").first().text().trim().match(/„([^”]+)”\s+([^\n]+)/);
+
+  if (match) {
+    const content = match[1].trim();
+    const author = match[2].trim();
+    return reply.send({
+      success: true, cytat: {
+        content: content,
+        author: author
+      }
+    });
+  } else {
+    return {success: false, cytat: {content: "Brak cytatu na dziś", author: "~"}};
+  }
+})
 
 fastify.get("/spoti", (req, reply) => {
   reply.redirect(
