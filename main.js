@@ -32,7 +32,7 @@ fastify.get("/api/getPosts", async (req, reply) => {
   const res = await axios.get("https://zstiojar.edu.pl//wp-json/wp/v2/posts");
   reply.send({
     success: true, posts: res.data.map((post) => {
-      return {title: cheerio.load(post.title.rendered).text(), link: post.link, img: post.jetpack_featured_media_url}
+      return {title: cheerio.load(post?.title?.rendered)?.text(), link: post.link, img: post.jetpack_featured_media_url}
     })
   })
 })
